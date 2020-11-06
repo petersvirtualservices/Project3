@@ -1,3 +1,7 @@
+* {
+  color: #333;
+}
+
 .App {
   text-align: center;
 }
@@ -35,4 +39,53 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+h1 {
+  background: lightblue;
+  margin: 0;
+  padding: 30px;
+}
+
+h2 {
+  text-align: center;
+}
+
+#welcome {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+input#name {
+  margin: 0 10px;
+  border: none;
+  background: #efefef;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+button {
+  padding: 10px;
+  border: none;
+  background: lightblue;
+  font-weight: 800;
+  border-radius: 4px;
+}
+
+#question-container {
+  max-width: 800px;
+  text-align: left;
+  margin: 0 auto;
+  font-weight: 800;
+}
+
+#question {
+  margin-bottom: 10px;
+}
+
+.answer {
+  padding: 10px 0;
+  font-weight: 800;
+  color: #777;
 }

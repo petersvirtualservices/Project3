@@ -2,15 +2,19 @@ import React from 'react';
 import axios from 'axios';
 import './App.css';
 import { server } from './config';
+import { questions, personalities, personalityLabels } from './quiz';
 
 class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       username: '',
+      route: 'welcome',
+      answers: [],
     }
     this.setUsername = this.setUsername.bind(this)
     this.saveUsername = this.saveUsername.bind(this)
+    this.saveQuizAnswer = this.saveQuizAnswer.bind(this)
   }
 
   setUsername(e) {
@@ -20,19 +24,53 @@ class App extends React.Component {
   saveUsername(e) {
     const username = this.state.username;
     const url = server.url + '/api/save_username';
-    axios.post(url, {
-      username: username,
-    }).then(response => {
-      console.log(' * got response', response);
-    })
+    axios.post(url, {username: username}).then(response => {});
+    this.setState({route: 'quiz'});
+  }
+
+  saveQuizAnswer(val) {
+    console.log(val)
+
+
+    const answers = this.state.answers;
+    answers.push(val);
+    this.setState({answers: answers});
   }
 
   render() {
     return (
-      <div className='App'>
-        <h1>{JSON.stringify(this.state)}</h1>
+      <div id='container'>
+        <div className='App'>
+          <h1>Cat Shack</h1>
 
-        <h1>Cat Shack</h1>
+          {this.state.route === 'welcome'
+            ? <Welcome
+                setUsername={this.setUsername}
+                saveUsername={this.saveUsername} />
+            : null
+          }
+
+          {this.state.route === 'quiz' && this.state.answers.length < questions.length
+            ? <Quiz
+                saveQuizAnswer={this.saveQuizAnswer}
+                questionIndex={this.state.answers.length} />
+            : null
+          }
+
+          {this.state.answers.length === questions.length
+            ? <ShowThemTheCat answers={this.state.answers} />
+            : null
+          }
+        </div>
+      </div>
+    );
+  }
+}
+
+class Welcome extends React.Component {
+  render() {
+    return (
+      <div id='welcome'>
         <h2>Where Fur Pals Can Get Together</h2>
         <p>We joke about how cats love us when we are needed elsewhere, but in truth, we would not trade that type of demanding behavior for anything in the world; in fact, even when that truth has been stereotypically ingrained in our rationale, we still run to local animal shelters and pet stores to buy these lovable creatures. </p>
         <p>The Cat Shack is designed to help make that transition smoother. After you take our in-depth, under-utilizing scientific quiz, you will be paired with a celebrity cat, who will help you relate to other similar cats available for adoption.</p>
@@ -41,15 +79,76 @@ class App extends React.Component {
           <input
             id='name'
             type='text'
-            onChange={this.setUsername} />
-          <button onClick={this.saveUsername}>Start The Quiz</button>
-
-          {[].map((val) => {
-            return <h2>Are You Ready To Find Your Next Cat,{val.name}?</h2>
-          })}
+            onChange={this.props.setUsername} />
+          <button onClick={this.props.saveUsername}>Start The Quiz</button>
         </div>
       </div>
-    );
+    )
+  }
+}
+
+class Quiz extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      idx: '',
+    }
+  }
+
+  setAnswerIndex(val) {
+    this.setState({idx: val})
+  }
+
+  render() {
+    const q = questions[this.props.questionIndex];
+    return (
+      <div id='quiz'>
+        <h2>QUIZ</h2>
+        <div id='question-container'>
+          <div id='question'>{q.question}</div>
+          {q.answers.map((a, idx) => {
+            return (
+              <div className='answer' key={a} onClick={() => this.setAnswerIndex(idx)}>
+                <input type='radio' id={idx} name='quiz-answer' value={a} />
+                <label>{a}</label>
+              </div>
+            )
+          })}
+          <button onClick={() => {this.props.saveQuizAnswer(this.state.idx)}}>Submit</button>
+        </div>
+      </div>
+    )
+  }
+}
+
+class ShowThemTheCat extends React.Component {
+  constructor(props) {
+    super(props)
+  }
+
+  render() {
+    const counts = {};
+    let maxKey = null;
+    let maxVal = 0;
+    // answers is a list of numbers [0, 0, 1, 0, 2]
+    this.props.answers.map(i => {
+      i = parseInt(i);
+      // update the counts of this answer
+      if (i in counts) counts[i] += 1;
+      else counts[i] = 1;
+      // check to see if the count of i is greater than the current max count
+      if (counts[i] > maxVal) {
+        maxVal = counts[i];
+        maxKey = i;
+      }
+    })
+
+    return (
+      <div id='final-screen'>
+        <div id='results'>Your quiz results identify you as personality type {personalityLabels[maxKey]}</div>
+        <img src={personalities[maxKey]} />
+      </div>
+    )
   }
 }
 
