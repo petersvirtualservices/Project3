@@ -29,12 +29,24 @@ class App extends React.Component {
   }
 
   saveQuizAnswer(val) {
-    console.log(val)
-
-
     const answers = this.state.answers;
+    const username = this.state.username;
     answers.push(val);
     this.setState({answers: answers});
+    if (this.state.answers.length === questions.length){
+      const personalityIndex = getUserPersonality(answers);
+      const personalityLabel = personalityLabels[personalityIndex];
+      axios.post(server.url + '/userDatabaseSave', {
+        username: username,
+        catpersonality: personalityLabel,
+      })
+      .then(function (response) {
+        console.log(response);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });     
+    }
   }
 
   render() {
@@ -58,7 +70,10 @@ class App extends React.Component {
           }
 
           {this.state.answers.length === questions.length
-            ? <ShowThemTheCat answers={this.state.answers} />
+            ? <ShowThemTheCat 
+                answers={this.state.answers}
+                username={this.state.username} 
+            />
             : null
           }
         </div>
@@ -121,31 +136,35 @@ class Quiz extends React.Component {
   }
 }
 
+const getUserPersonality = answers => { 
+  const counts = {};
+  let maxKey = null;
+  let maxVal = 0;
+  // answers is a list of numbers [0, 0, 1, 0, 2]
+  answers.map(i => {
+    i = parseInt(i);
+    // update the counts of this answer
+    if (i in counts) counts[i] += 1;
+    else counts[i] = 1;
+    // check to see if the count of i is greater than the current max count
+    if (counts[i] > maxVal) {
+      maxVal = counts[i];
+      maxKey = i;
+    }
+  })
+  return maxKey;
+}
+
 class ShowThemTheCat extends React.Component {
   constructor(props) {
     super(props)
   }
 
   render() {
-    const counts = {};
-    let maxKey = null;
-    let maxVal = 0;
-    // answers is a list of numbers [0, 0, 1, 0, 2]
-    this.props.answers.map(i => {
-      i = parseInt(i);
-      // update the counts of this answer
-      if (i in counts) counts[i] += 1;
-      else counts[i] = 1;
-      // check to see if the count of i is greater than the current max count
-      if (counts[i] > maxVal) {
-        maxVal = counts[i];
-        maxKey = i;
-      }
-    })
-
+    const maxKey = getUserPersonality(this.props.answers);
     return (
       <div id='final-screen'>
-        <div id='results'>Your quiz results identify you as personality type {personalityLabels[maxKey]}</div>
+        <div id='results'>{this.props.username}, your quiz results identify you as personality type {personalityLabels[maxKey]}</div>
         <img src={personalities[maxKey]} />
       </div>
     )
