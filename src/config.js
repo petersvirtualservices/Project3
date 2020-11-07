@@ -1,3 +1,5 @@
 export const server = {
-  url: 'http://localhost:4000',
+  url: window.location.origin.includes('localhost')
+  ? 'http://localhost:4000'
+  : window.location.origin
 }
